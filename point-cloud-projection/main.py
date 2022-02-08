@@ -4,6 +4,7 @@ import os
 import tempfile
 import platform
 from pathlib import Path
+import ransac
 
 import cv2
 import depthai
@@ -50,6 +51,8 @@ while True:
                     pcl_converter = PointCloudVisualizer(path)
                 pcd = pcl_converter.rgbd_to_projection(frame, right)
                 pcl_converter.visualize_pcd()
+                # x,y,z = ransac.find_plane(pcd)
+                # ransac.show_graph(x,y,z)
             cv2.imshow(packet.stream_name, frame)
     if cv2.waitKey(1) == ord("q"):
         break

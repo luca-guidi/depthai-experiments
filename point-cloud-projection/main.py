@@ -8,6 +8,8 @@ import ransac
 
 import cv2
 import depthai
+import numpy
+
 
 try:
     from projector_3d import PointCloudVisualizer
@@ -36,10 +38,20 @@ while True:
     for packet in data_packets:
         if packet.stream_name == "right":
             right = packet.getData()
-            cv2.imshow(packet.stream_name, right)
+            #cv2.imshow(packet.stream_name, right)
         elif packet.stream_name == "depth":
             frame = packet.getData()
+            median = cv2.medianBlur(frame, 5)
+            median2 = cv2.medianBlur(median,5)
+            '''
+            median3 = cv2.medianBlur(median,5)
+            median4 = cv2.medianBlur(median,5)
+            median5 = cv2.medianBlur(median,5)
+
+            bilateral = cv2.bilateralFilter(frame,15,75,75)
+            '''
             if right is not None:
+
                 if pcl_converter is None:
                     fd, path = tempfile.mkstemp(suffix='.json')
                     with os.fdopen(fd, 'w') as tmp:
@@ -48,12 +60,28 @@ while True:
                             "height": 720,
                             "intrinsic_matrix": [item for row in device.get_right_intrinsic() for item in row]
                         }, tmp)
+
                     pcl_converter = PointCloudVisualizer(path)
-                pcd = pcl_converter.rgbd_to_projection(frame, right)
+                pcd = pcl_converter.rgbd_to_projection(median, right)
                 pcl_converter.visualize_pcd()
+                print("**************")
+                print(numpy.asarray((pcl_converter.pcl.points)))
+
                 # x,y,z = ransac.find_plane(pcd)
                 # ransac.show_graph(x,y,z)
-            cv2.imshow(packet.stream_name, frame)
+            #cv2.imshow(packet.stream_name, frame)
+            '''
+            cv2.imshow("filter", median)
+
+            cv2.imshow("filter2", median2)
+            cv2.imshow("filter3", median3)
+            cv2.imshow("filter4", median4)
+            '''
+            #cv2.imshow("filter5", median5)
+
+
+            #cv2.imshow("filter2", bilateral)
+
     if cv2.waitKey(1) == ord("q"):
         break
 
